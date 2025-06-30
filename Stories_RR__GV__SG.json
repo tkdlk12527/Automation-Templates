@@ -1,0 +1,926 @@
+{
+  "name": "Stories RR, GV, SG",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5ca53588-a5fd-47fe-a9db-5e8b42e88a19",
+              "name": "Token",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "0fc539bd-e223-4f1a-86b2-15e4b2a34df6",
+              "name": "Id Page",
+              "value": "115432036514099",
+              "type": "string"
+            },
+            {
+              "id": "fe88f84b-b540-40b2-ab98-b22ecbc740e5",
+              "name": "Token GV",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "83711432-04fe-4528-b05d-6124d3e51643",
+              "name": "ID GV",
+              "value": "546540011869775",
+              "type": "string"
+            },
+            {
+              "id": "1b4eea60-f68d-43bd-ab4b-d8f87f7e4181",
+              "name": "Token SG",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "4edb833a-6da7-4f95-a515-4143660cbb12",
+              "name": "ID SG",
+              "value": "454425537763458",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -460,
+        340
+      ],
+      "id": "fd00f315-0abb-4602-94ee-5e52f1bd293f",
+      "name": "info"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1UpGH04JjoZ5sC_z5LeMUSPIIa5ZO4XBTWOrWZoo1TdM",
+          "mode": "list",
+          "cachedResultName": "Rẹc Rẹc - quicktips.88",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UpGH04JjoZ5sC_z5LeMUSPIIa5ZO4XBTWOrWZoo1TdM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UpGH04JjoZ5sC_z5LeMUSPIIa5ZO4XBTWOrWZoo1TdM/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Stories"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -240,
+        340
+      ],
+      "id": "1dc2682a-70f2-4ad5-9860-7ba43635e465",
+      "name": "thông tin Sheet",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hk2StNUP4cNMTzZK",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -680,
+        340
+      ],
+      "id": "8b6cc284-75f8-4340-af9c-2a65f8f10fc9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('thông tin Sheet').first().json['File ID'] }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        640,
+        340
+      ],
+      "id": "1f48015b-2208-429f-b742-9882b778f72b",
+      "name": "Google Drive",
+      "alwaysOutputData": false,
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8uf85WGDJfGJirA8",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('RR').first().json.body.upload_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "offset",
+              "value": "0"
+            },
+            {
+              "name": "file_size",
+              "value": "={{ $('Lấy số byte đúng').first().json.actualSize }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=OAuth {{ $('info').first().json.Token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        140
+      ],
+      "id": "eb40b7f7-43c0-4d12-91c8-e2fe86ce7686",
+      "name": "Upload Video",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const size = item.binary.data.fileSize;\n  const contentLength = Buffer.from(item.binary.data.data, 'base64').length;\n\n  item.json = {\n    declaredSize: size,\n    actualSize: contentLength\n  };\n\n  return item;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        340
+      ],
+      "id": "29736f6b-9caa-472a-8f17-d1b1259ddce5",
+      "name": "Lấy số byte đúng"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['Id Page'] }}/video_stories",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "video_id",
+              "value": "={{ $('RR').item.json.body.video_id }}"
+            },
+            {
+              "name": "upload_phase",
+              "value": "finish"
+            },
+            {
+              "name": "access_token",
+              "value": "=EAAJQeT0qhu8BO7iHI2a7ZBNGmI2iLo1SJ6hUdhlyUoJe1dCZBAZC0wkVa9gyF6AUiG4fxfc36qvTyZBeJLR60EL0FRHBYdImZC6o6PZAvdj9ZAQUbGCNJfpEZC0MCuFYxU5XlHrVrTYaqcbjtkionualjCyPxHgAdBBVvsvTrKUcu8rh4Qb0yKe5JyfTCFqpyNstZBiPnSVw35wavyowusyh5rhMZD"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        140
+      ],
+      "id": "9ee72af7-1e7d-46c0-a017-8ae273733fcb",
+      "name": "Đăng tin",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v23.0/{{ $('RR').first().json.body.video_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json.Token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        140
+      ],
+      "id": "d4acfe23-cd71-4e67-a5e0-10f90e58e8cf",
+      "name": "Lấy trạng thái tin",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1UpGH04JjoZ5sC_z5LeMUSPIIa5ZO4XBTWOrWZoo1TdM",
+          "mode": "list",
+          "cachedResultName": "Rẹc Rẹc - quicktips.88",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UpGH04JjoZ5sC_z5LeMUSPIIa5ZO4XBTWOrWZoo1TdM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Trang tính1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UpGH04JjoZ5sC_z5LeMUSPIIa5ZO4XBTWOrWZoo1TdM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('thông tin Sheet').first().json.row_number }}",
+            "Stories": "={{ $json.body.id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "File ID",
+              "displayName": "File ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link 1",
+              "displayName": "Link 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Link 2",
+              "displayName": "Link 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Link 3",
+              "displayName": "Link 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Stories",
+              "displayName": "Stories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1740,
+        140
+      ],
+      "id": "1a8dc909-9851-476e-b969-f64a56203f53",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hk2StNUP4cNMTzZK",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['Id Page'] }}/video_stories",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "upload_phase",
+              "value": "start"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json.Token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        340
+      ],
+      "id": "d5df811d-cf84-47d5-8b08-cb4ca1cf7bc0",
+      "name": "RR",
+      "executeOnce": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['ID GV'] }}/video_stories",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "upload_phase",
+              "value": "start"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json['Token GV'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        340
+      ],
+      "id": "d47f187d-9aa2-4250-9a71-fcf47f41bfcf",
+      "name": "GV",
+      "executeOnce": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['ID SG'] }}/video_stories",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "upload_phase",
+              "value": "start"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json['Token SG'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        340
+      ],
+      "id": "90a08c06-43d7-49db-b125-3ea6c8909801",
+      "name": "SG",
+      "executeOnce": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('GV').first().json.body.upload_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "offset",
+              "value": "0"
+            },
+            {
+              "name": "file_size",
+              "value": "={{ $('Lấy số byte đúng').first().json.actualSize }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=OAuth {{ $('info').first().json['Token GV'] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        340
+      ],
+      "id": "c3636561-b20a-4a0b-9a02-10bedd566abb",
+      "name": "Upload Video GV",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['ID GV'] }}/video_stories",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "video_id",
+              "value": "={{ $('GV').first().json.body.video_id }}"
+            },
+            {
+              "name": "upload_phase",
+              "value": "finish"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json['Token GV'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        340
+      ],
+      "id": "700a5d0d-4a2b-4b93-b52a-8591aa37182e",
+      "name": "Đăng tin GV",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v23.0/{{ $('GV').first().json.body.video_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json['Token GV'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        340
+      ],
+      "id": "44c5a7d3-c31a-4b14-9a7f-a653cb9aec50",
+      "name": "Lấy trạng thái tin GV",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('SG').first().json.body.upload_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "offset",
+              "value": "0"
+            },
+            {
+              "name": "file_size",
+              "value": "={{ $('Lấy số byte đúng').first().json.actualSize }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=OAuth {{ $('info').first().json['Token SG'] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        540
+      ],
+      "id": "08075c03-d23a-4c86-83c2-4aba3a9aca75",
+      "name": "Upload Video SG",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['ID SG'] }}/video_stories",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "video_id",
+              "value": "={{ $('SG').first().json.body.video_id }}"
+            },
+            {
+              "name": "upload_phase",
+              "value": "finish"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json['Token SG'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        540
+      ],
+      "id": "ee6c9e41-80fb-4a14-b39d-f7bfd52e1d93",
+      "name": "Đăng tin SG",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v23.0/{{ $('RR').first().json.body.video_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json.Token }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        540
+      ],
+      "id": "10900e4c-665c-4707-8774-9ead9321a78e",
+      "name": "Lấy trạng thái tin SG",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "info": {
+      "main": [
+        [
+          {
+            "node": "thông tin Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "thông tin Sheet": {
+      "main": [
+        [
+          {
+            "node": "RR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Lấy số byte đúng",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Video": {
+      "main": [
+        [
+          {
+            "node": "Đăng tin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lấy số byte đúng": {
+      "main": [
+        [
+          {
+            "node": "Upload Video",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload Video GV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload Video SG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Đăng tin": {
+      "main": [
+        [
+          {
+            "node": "Lấy trạng thái tin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lấy trạng thái tin": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RR": {
+      "main": [
+        [
+          {
+            "node": "GV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GV": {
+      "main": [
+        [
+          {
+            "node": "SG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SG": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Video GV": {
+      "main": [
+        [
+          {
+            "node": "Đăng tin GV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Đăng tin GV": {
+      "main": [
+        [
+          {
+            "node": "Lấy trạng thái tin GV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lấy trạng thái tin GV": {
+      "main": [
+        []
+      ]
+    },
+    "Upload Video SG": {
+      "main": [
+        [
+          {
+            "node": "Đăng tin SG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Đăng tin SG": {
+      "main": [
+        [
+          {
+            "node": "Lấy trạng thái tin SG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lấy trạng thái tin SG": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "75e312ad-46fa-4ebb-87e6-af537f9cd157",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14d3b2dfc3f546d088acc6fc297c7ac9a0ef5fca269e9be26848175fa668416b"
+  },
+  "id": "uxhoCZuoZqB3kGel",
+  "tags": [
+    {
+      "createdAt": "2025-06-07T11:00:03.191Z",
+      "updatedAt": "2025-06-07T11:00:03.191Z",
+      "id": "2qLrtyN9rY0c9bQH",
+      "name": "Page"
+    },
+    {
+      "createdAt": "2025-06-07T11:00:06.367Z",
+      "updatedAt": "2025-06-07T11:00:06.367Z",
+      "id": "CDlhcXIGeq5vqHyy",
+      "name": "Sheet"
+    },
+    {
+      "createdAt": "2025-06-20T14:44:57.445Z",
+      "updatedAt": "2025-06-20T14:44:57.445Z",
+      "id": "qj56uaG0iPJGdVSz",
+      "name": "Stories"
+    }
+  ]
+}
