@@ -1,0 +1,521 @@
+{
+  "name": "Upload video Facebook + Bình luận",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5ca53588-a5fd-47fe-a9db-5e8b42e88a19",
+              "name": "Token",
+              "value": "thêm token tại https://developers.facebook.com/tools/explorer/",
+              "type": "string"
+            },
+            {
+              "id": "0fc539bd-e223-4f1a-86b2-15e4b2a34df6",
+              "name": "Id Page",
+              "value": "them id page tại https://developers.facebook.com/tools/explorer/",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -60,
+        60
+      ],
+      "id": "d9155ff4-e551-4ab8-a495-59884996c323",
+      "name": "info"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1WBTE8WSMRx9yPAVxU0HQ_rOAdCyd2DZj8OCKHnUXZSU",
+          "mode": "list",
+          "cachedResultName": "Rẹc Rẹc - Aff",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WBTE8WSMRx9yPAVxU0HQ_rOAdCyd2DZj8OCKHnUXZSU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tổng hợp",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WBTE8WSMRx9yPAVxU0HQ_rOAdCyd2DZj8OCKHnUXZSU/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Rec Rec"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        160,
+        60
+      ],
+      "id": "be940eb5-e58d-49b4-8171-5cc692b4f671",
+      "name": "thông tin Sheet",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hk2StNUP4cNMTzZK",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 45
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        600,
+        160
+      ],
+      "id": "274745d8-c910-4c2b-8812-f21609908734",
+      "name": "Chờ tải video lên",
+      "webhookId": "32ea4556-7456-4e0e-9321-519fc18221fd"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -280,
+        60
+      ],
+      "id": "0ec29f77-aaf3-42d1-861f-36710712a51a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph-video.facebook.com/v23.0/{{ $('info').first().json['Id Page'] }}/videos",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json.Token }}"
+            },
+            {
+              "name": "title",
+              "value": "=P{{ $json.row_number }} {{ $('thông tin Sheet').first().json['Mô tả'] }}"
+            },
+            {
+              "name": "description",
+              "value": "="
+            },
+            {
+              "name": "file_url",
+              "value": "={{ $('thông tin Sheet').first().json['Web Content Link'] }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ $('thông tin Sheet').first().json['Link Aff 1'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        380,
+        60
+      ],
+      "id": "f077b538-1131-4e0c-a85d-f926d1e7139e",
+      "name": "Upload video",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1WBTE8WSMRx9yPAVxU0HQ_rOAdCyd2DZj8OCKHnUXZSU",
+          "mode": "list",
+          "cachedResultName": "Rẹc Rẹc - Aff",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WBTE8WSMRx9yPAVxU0HQ_rOAdCyd2DZj8OCKHnUXZSU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tổng hợp",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WBTE8WSMRx9yPAVxU0HQ_rOAdCyd2DZj8OCKHnUXZSU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "page SG": "=",
+            "row_number": "={{ $('thông tin Sheet').first().json.row_number }}",
+            "Rec Rec": "={{ $('Upload video').first().json.id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "File ID",
+              "displayName": "File ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KT Go Vap",
+              "displayName": "KT Go Vap",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Rec Rec",
+              "displayName": "Rec Rec",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Mô tả",
+              "displayName": "Mô tả",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Web Content Link",
+              "displayName": "Web Content Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link Aff 1",
+              "displayName": "Link Aff 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link Aff 2",
+              "displayName": "Link Aff 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link Aff 3",
+              "displayName": "Link Aff 3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "page SG",
+              "displayName": "page SG",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        620,
+        -200
+      ],
+      "id": "22882b4b-1f95-4521-b053-82aa76ad2d2c",
+      "name": "Cập nhật trạng thái lên Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hk2StNUP4cNMTzZK",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['Id Page'] }}_{{ $('Upload video').first().json.id }}/comments",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json.Token }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('thông tin Sheet').item.json['Link Aff 1'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        -40
+      ],
+      "id": "4ec5e477-b472-4e12-9045-97c4531676bc",
+      "name": "Bình luận 1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['Id Page'] }}_{{ $('Upload video').first().json.id }}/comments",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json.Token }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('thông tin Sheet').item.json['Link Aff 2'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        140
+      ],
+      "id": "2d69fab0-9ace-46ba-89c0-e0f86cef3727",
+      "name": "Bình luận 2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('info').first().json['Id Page'] }}_{{ $('Upload video').first().json.id }}/comments",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $('info').first().json.Token }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('thông tin Sheet').item.json['Link Aff 3'] }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        360
+      ],
+      "id": "de416386-cb68-487d-a458-66437dfda9dc",
+      "name": "Bình luận 3",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "info": {
+      "main": [
+        [
+          {
+            "node": "thông tin Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "thông tin Sheet": {
+      "main": [
+        [
+          {
+            "node": "Upload video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chờ tải video lên": {
+      "main": [
+        [
+          {
+            "node": "Bình luận 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Bình luận 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Bình luận 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload video": {
+      "main": [
+        [
+          {
+            "node": "Chờ tải video lên",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Cập nhật trạng thái lên Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bình luận 1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "15fb87bd-aaf3-436c-b514-67cfca84cd84",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14d3b2dfc3f546d088acc6fc297c7ac9a0ef5fca269e9be26848175fa668416b"
+  },
+  "id": "3iJEmxWI61AcoF4T",
+  "tags": [
+    {
+      "createdAt": "2025-06-07T11:00:03.191Z",
+      "updatedAt": "2025-06-07T11:00:03.191Z",
+      "id": "2qLrtyN9rY0c9bQH",
+      "name": "Page"
+    },
+    {
+      "createdAt": "2025-06-07T11:00:06.367Z",
+      "updatedAt": "2025-06-07T11:00:06.367Z",
+      "id": "CDlhcXIGeq5vqHyy",
+      "name": "Sheet"
+    }
+  ]
+}
