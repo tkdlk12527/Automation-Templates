@@ -1,5 +1,5 @@
 {
-  "name": "Upload video Facebook + Bình luận",
+  "name": "Upload video Facebook + Bình luận từ Sheet",
   "nodes": [
     {
       "parameters": {
